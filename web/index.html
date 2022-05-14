@@ -29,13 +29,27 @@
             </div>
             <div class="thumbnail" style="padding: 0">
               <div style="padding:4px">
-                <canvas id="nats_publisher_div" width="370" height="400">
+                <h4>Publisher 1</h4>
+                <canvas id="nats_publisher_div" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
               <div class="modal-footer" style="text-align: center">
                 <div class="row-fluid">
                   <div id="msgSent" class="span12"><b>0</b><br/><small>Messages Sent</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="thumbnail" style="padding: 0">
+              <div style="padding:4px">
+                <h4>Publisher 2</h4>
+                <canvas id="nats_publisher_div2" width="370" height="200">
+                  Sorry, your browser doesn't support the &lt;canvas&gt; element.
+                </canvas>
+              </div>
+              <div class="modal-footer" style="text-align: center">
+                <div class="row-fluid">
+                  <div id="msgSent2" class="span12"><b>0</b><br/><small>Messages Sent</small></div>
                 </div>
               </div>
             </div>
@@ -60,13 +74,14 @@
             </div>
           </li>
           <li class="span4">
+            <div class="caption">
+              <h2>Subscriber</h2>
+              <p>Messages received will be plotted on canvas</p>
+            </div>
             <div class="thumbnail" style="padding: 0">
-              <div class="caption">
-                <h2>Subscriber</h2>
-                <p>Messages received will be plotted on canvas</p>
-              </div>
               <div style="padding:4px">
-                <canvas id="nats_subscriber_div" width="370" height="400">
+                <h4>Subscriber 1</h4>
+                <canvas id="nats_subscriber_div" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
@@ -74,6 +89,20 @@
                 <div class="row-fluid">
                   <div id="msgReceived" class="span6"><b>0</b><br/><small>Messages Received</small></div>
                   <div id="msgLatencyAverage" class="span6"><b>0</b><br/><small>Average Latency</small></div>
+                </div>
+              </div>
+            </div>
+            <div class="thumbnail" style="padding: 0">
+              <div style="padding:4px">
+                <h4>Subscriber 2</h4>
+                <canvas id="nats_subscriber_div2" width="370" height="200">
+                  Sorry, your browser doesn't support the &lt;canvas&gt; element.
+                </canvas>
+              </div>
+              <div class="modal-footer" style="text-align: center">
+                <div class="row-fluid">
+                  <div id="msgReceived2" class="span6"><b>0</b><br/><small>Messages Received</small></div>
+                  <div id="msgLatencyAverage2" class="span6"><b>0</b><br/><small>Average Latency</small></div>
                 </div>
               </div>
             </div>
@@ -102,18 +131,18 @@
         console.error('ERRR', err)
         addAlert(err);
       }
-      if ( ++wsConnections == 2 )
+      if ( ++wsConnections == 4 )
         $("#loader").hide();
     }
     function onClickReconnect() {
       $("#loader").show();
       try {
-        if (NATSPublisher.nc) NATSPublisher.nc.close();
-        if (NATSSubscriber.nc) NATSSubscriber.nc.close();
         wsConnections = 0;
         let config = getConfig();
         NATSSubscriber.startWebSocket(onConnected, config);
+        NATSSubscriber2.startWebSocket(onConnected, config);
         NATSPublisher.startWebSocket(onConnected, config);
+        NATSPublisher2.startWebSocket(onConnected, config);
       } catch (err) {
         console.error(err);
       }
@@ -133,26 +162,41 @@
     console.log('config', config);
 
     window.NATSSubscriber = new NATSSubscriberDrawingContainer('nats_subscriber_div', config, onSubscriberStatistics);
+    window.NATSSubscriber2 = new NATSSubscriberDrawingContainer('nats_subscriber_div2', config, onSubscriberStatistics2);
     window.NATSPublisher = new NATSPublisherDrawingContainer('nats_publisher_div', config, onPublisherStatistics);
+    window.NATSPublisher2 = new NATSPublisherDrawingContainer('nats_publisher_div2', config, onPublisherStatistics2);
     onClickReconnect();
 
     window.aggregateStatistics = {};
 
-    function onPublisherStatistics(statistics)
-    {
+    function onPublisherStatistics(statistics) {
       //console.log(statistics.MessagesSent);
       $("#msgSent").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
 
       aggregateStatistics.MessagesSent = statistics.MessagesSent;
     }
 
-    function onSubscriberStatistics(statistics)
-    {
+    function onPublisherStatistics2(statistics) {
+      //console.log(statistics.MessagesSent);
+      $("#msgSent2").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
+
+      aggregateStatistics.MessagesSent = statistics.MessagesSent;
+    }
+
+    function onSubscriberStatistics(statistics) {
       aggregateStatistics.MessagesReceived = statistics.MessagesReceived;
 
       $("#msgReceived").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
       $("#msgLatencyAverage").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
     }
+
+    function onSubscriberStatistics2(statistics) {
+      aggregateStatistics.MessagesReceived = statistics.MessagesReceived;
+
+      $("#msgReceived2").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
+      $("#msgLatencyAverage2").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
+    }
+
   </script>
 
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
