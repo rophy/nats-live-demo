@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>iDevelop<AWS> - Messaging Demo</title>
+    <title>NATS Live Demo</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
@@ -29,8 +29,8 @@
                 </canvas>
               </div>
               <div class="caption">
-                <h2>MQTT Publisher</h2>
-                <p>Mouse moves are published to an AWS IoT Topic</p>
+                <h2>Publisher</h2>
+                <p>Mouse moves are published to a topic</p>
               </div>
               <div class="modal-footer" style="text-align: center">
                 <div class="row-fluid">
@@ -40,43 +40,13 @@
             </div>
           </li>
           <li class="span4">
-            <img src="images/idevelop_aws_logo.png">
-
-              <div class="caption">
-                <div class="dropdown">
-                  <button style="margin-top:10px;margin-bottom:10px;" class="btn btn-block btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    AWS IoT MQTT publisher to MQTT subscriber
-                    <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li><a href="sqs-standard.html">AWS SQS (standard) publisher to SQS subscriber</a></li>
-                    <li><a href="sqs-standard-multisub.html">AWS SQS (standard) publisher to multiple SQS subscribers</a></li>
-                    <li><a href="sqs-fifo.html">AWS SQS (FIFO) publisher to SQS subscriber</a></li>
-                    <li><a href="sns-multisub.html">AWS SNS publisher to multiple SQS subscribers</a></li>
-                    <li><a href="kinesis-publisher.html">AWS Kinesis publisher to SQS subscriber</a></li>
-                    <li class="active"><a href="mqtt-master.html">AWS IoT MQTT publisher to MQTT subscriber</a></li>
-                    <li><a href="mqtt-slave.html">AWS IoT MQTT publisher to MQTT subscriber slave</a></li>
-                  </ul>
-                </div>
-
-                <div style="padding:7px;color:#666666">
-                  <p>
-                    Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
-                  </p>
-                  <p>
-                    As you draw, messages containing information about the X &amp; Y coordinates of the mouse will be published to a custom IoT topic. These
-                    messages will be received by the browser which is subscribed to the same custom topic, and rendered on the right-hand
-                    canvas.
-                  </p>
-                  <p>
-                    There will be some latency between the send and receive times of messages between the left and right canvases. This information will be shown in the statistics panels.
-                  </p>
-                  <br><br>
-                  <center>
-                    <button type="button" class="btn btn-primary btn-md" onclick="MQTTPublisher.clearCanvas()">Clear drawing</button>
-                  </center>
-              </div>
-              </div>
+              <h2>NATS Live Demo</h2>
+              <div style="padding:7px;color:#666666">
+                <p>
+                  Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
+                </p>
+                <button type="button" class="btn btn-primary btn-md" onclick="MQTTPublisher.clearCanvas()">Clear drawing</button>
+            </div>
 
           </li>
           <li class="span4">
@@ -87,8 +57,8 @@
                 </canvas>
               </div>
               <div class="caption">
-                <h2>MQTT Subscriber</h2>
-                <p>Messages received via AWS IoT and plotted on canvas</p>
+                <h2>Subscriber</h2>
+                <p>Messages received will be plotted on canvas</p>
               </div>
               <div class="modal-footer" style="text-align: center">
                 <div class="row-fluid">
@@ -104,51 +74,14 @@
   <script type="module">
     import { config } from './scripts/aws-config.js'
     import { MQTTPublisherDrawingContainer, MQTTSubscriberDrawingContainer } from './scripts/mqtt-container.js'
-    import { connect, StringCodec } from './scripts/nats.js'
-    const servers = [
-      { servers: ["ws://localhost:8080"] },
-    ];
 
-    async function start() {
-      const nc = await connect({ servers: config.NATS_URL });
-      console.log(`connected to ${nc.getServer()}`);
-      return nc;
-    }
-
-    const sc = StringCodec();
-    async function loop() {
-      const sub = nc.subscribe("hello");
-      for await (const m of sub) {
-        console.log(`[${sub.getProcessed()}]: ${sc.decode(m.data)}`);
-      }
-      console.log("subscription closed");
-    }
-
-    const nc = await start();
-    loop();
-
-    nc.publish("hello", sc.encode("world"));
-    nc.publish("hello", sc.encode("again"));
-    await nc.drain();
-    nc.close();
-
-    // var MQTTPublisher = null;
-    // var MQTTSubscriber = null;
     var wsConnections  = 0;
-
-    // // cognito authentication completed callback
-    // // - take this opportunity to instantiate the
-    // //   pub/sub components
-    // var cognitoConnectedFunction = function(configuration)
-    // {
-    //   console.log("cognito connected");
 
     window.MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
     MQTTSubscriber.startWebSocket(onConnected);
 
     window.MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', config, onPublisherStatistics);
     MQTTPublisher.startWebSocket(onConnected);
-    // };
 
     function onConnected()
     {
