@@ -1,6 +1,8 @@
 var config = {
 
-	"Region" : "ap-southeast-2",
+	"NATS_URL": "ws://localhost:8080",
+
+	"Region" : "ap-northeast-1",
 
 	"Cognito" : {
 		"IdentityPoolId": "REPLACE_WITH_COGNITO_IDENTITY_POOL_ID"
@@ -36,3 +38,5 @@ var config = {
 		"Topic" : "idevelop/drawingdemo"
 	}
 }
+
+export { config as config };
