@@ -13,10 +13,12 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 {
     constructor(counterElementName,
                 configuration,
-                statisticsCallback
+                statisticsCallback,
+                extraConfig
               )
     {
         super(counterElementName, configuration, statisticsCallback);
+        this.extraConfig = extraConfig || {};
     }
 
     // -- receiver methods
@@ -32,7 +34,11 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
             return onConnectedCallback(err);
         }
 
-        const sub = this.nc.subscribe(this.configuration.topic);
+        console.log(this.extraConfig, this.configuration)
+
+        const sub = this.nc.subscribe(this.configuration.topic, {
+            queue: this.extraConfig.enableQueueGroup ? this.configuration.queue : null
+        });
         for await (const m of sub) {
             let point = JSON.parse(sc.decode(m.data));
             console.log(sub.getProcessed(), point);

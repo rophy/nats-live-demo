@@ -1,4 +1,5 @@
 config = {
     nats_url: "ws://localhost:8080",
-    topic: "drawing"
+    topic: "drawing",
+    queue: 'drawing-group'
 };
