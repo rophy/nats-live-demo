@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  web-app:
+    image: nginx:1.21.6
+    volumes:
+      - ./web:/usr/share/nginx/html
+    ports:
+      - "8000:80"
