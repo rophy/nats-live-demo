@@ -29,7 +29,7 @@
             </div>
             <div class="thumbnail" style="padding: 0">
               <div style="padding:4px">
-                <canvas id="mqtt_publisher_div" width="370" height="400">
+                <canvas id="nats_publisher_div" width="370" height="400">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
@@ -46,7 +46,7 @@
                 <p>
                   Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
                 </p>
-                <button type="button" class="btn btn-primary btn-md" onclick="MQTTPublisher.clearCanvas()">Clear drawing</button>
+                <button type="button" class="btn btn-primary btn-md" onclick="NATSPublisher.clearCanvas()">Clear drawing</button>
             </div>
           </li>
           <li class="span4">
@@ -56,7 +56,7 @@
                 <p>Messages received will be plotted on canvas</p>
               </div>
               <div style="padding:4px">
-                <canvas id="mqtt_subscriber_div" width="370" height="400">
+                <canvas id="nats_subscriber_div" width="370" height="400">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
@@ -98,12 +98,12 @@
     function onClickReconnect() {
       $("#loader").show();
       try {
-        if (MQTTPublisher.nc) MQTTPublisher.nc.close();
-        if (MQTTSubscriber.nc) MQTTSubscriber.nc.close();
+        if (NATSPublisher.nc) NATSPublisher.nc.close();
+        if (NATSSubscriber.nc) NATSSubscriber.nc.close();
         wsConnections = 0;
         let config = getConfig();
-        MQTTSubscriber.startWebSocket(onConnected, config);
-        MQTTPublisher.startWebSocket(onConnected, config);
+        NATSSubscriber.startWebSocket(onConnected, config);
+        NATSPublisher.startWebSocket(onConnected, config);
       } catch (err) {
         console.error(err);
       }
@@ -117,13 +117,13 @@
   </script>
 
   <script type="module">
-    import { MQTTPublisherDrawingContainer, MQTTSubscriberDrawingContainer } from './scripts/mqtt-container.js'
+    import { NATSPublisherDrawingContainer, NATSSubscriberDrawingContainer } from './scripts/nats-container.js'
 
 
     console.log('config', config);
 
-    window.MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
-    window.MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', config, onPublisherStatistics);
+    window.NATSSubscriber = new NATSSubscriberDrawingContainer('nats_subscriber_div', config, onSubscriberStatistics);
+    window.NATSPublisher = new NATSPublisherDrawingContainer('nats_publisher_div', config, onPublisherStatistics);
     onClickReconnect();
 
     window.aggregateStatistics = {};

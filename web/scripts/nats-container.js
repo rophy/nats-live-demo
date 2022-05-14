@@ -7,9 +7,9 @@ const sc = StringCodec();
 
 /**
  * extend the basic point drawing canvas so that instances listen for
- * messages on the given MQTT instance which are then drawn as points
+ * messages on the given NATS instance which are then drawn as points
  */
-class MQTTSubscriberDrawingContainer extends EventSubscriberDrawingContainer
+class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 {
     constructor(counterElementName,
                 configuration,
@@ -46,9 +46,9 @@ class MQTTSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 
 /**
  * extend the basic point drawing canvas so that instances listen for
- * messages on the given MQTT instance which are then drawn as points
+ * messages on the given NATS instance which are then drawn as points
  */
-class MQTTPublisherDrawingContainer extends EventPublisherDrawingContainer
+class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
 {
     constructor(counterElementName,
                 configuration,
@@ -130,4 +130,4 @@ class MQTTPublisherDrawingContainer extends EventPublisherDrawingContainer
     }
 }
 
-export { MQTTPublisherDrawingContainer, MQTTSubscriberDrawingContainer };
+export { NATSPublisherDrawingContainer, NATSSubscriberDrawingContainer };
