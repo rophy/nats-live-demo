@@ -21,13 +21,18 @@ class MQTTSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 
     // -- receiver methods
 
-    async startWebSocket(onConnectedCallback)
+    async startWebSocket(onConnectedCallback, configuration)
     {
-        this.nc = await connect({ servers: this.configuration.NATS_URL });
-        console.log(`connected to ${this.nc.getServer()}`);
-        onConnectedCallback();
+        try {
+            if (configuration) this.configuration = configuration;
+            this.nc = await connect({ servers: this.configuration.nats_url });
+            console.log(`connected to ${this.nc.getServer()}`);
+            onConnectedCallback();
+        } catch (err) {
+            return onConnectedCallback(err);
+        }
 
-        const sub = this.nc.subscribe(this.configuration.NATS_TOPIC);
+        const sub = this.nc.subscribe(this.configuration.topic);
         for await (const m of sub) {
             let point = JSON.parse(sc.decode(m.data));
             console.log(sub.getProcessed(), point);
@@ -35,6 +40,7 @@ class MQTTSubscriberDrawingContainer extends EventSubscriberDrawingContainer
         }
         console.log("subscription closed");
     }
+
 
 }
 
@@ -70,7 +76,7 @@ class MQTTPublisherDrawingContainer extends EventPublisherDrawingContainer
             {
                 let payload = { x:x, y:y, timestamp: new Date().getTime(), clear:false };
                 self.nc.publish(
-                  self.configuration.NATS_TOPIC,
+                  self.configuration.topic,
                   sc.encode(JSON.stringify(payload))
                 );
                 self.statistics.MessagesSent++;
@@ -105,16 +111,22 @@ class MQTTPublisherDrawingContainer extends EventPublisherDrawingContainer
         super.clearCanvas();
         let payload = { x:0, y:0, timestamp: new Date().getTime(), clear:true };
         this.nc.publish(
-            this.configuration.NATS_TOPIC,
+            this.configuration.topic,
             sc.encode(JSON.stringify(payload))
         );
     }
 
-    async startWebSocket(onConnectedCallback)
+    async startWebSocket(onConnectedCallback, configuration)
     {
-        this.nc = await connect({ servers: this.configuration.NATS_URL });
-        console.log(`connected to ${this.nc.getServer()}`);
-        onConnectedCallback();
+        try {
+            if (configuration) this.configuration = configuration;
+            this.nc = await connect({ servers: this.configuration.nats_url });
+            console.log(`connected to ${this.nc.getServer()}`);
+            onConnectedCallback();
+        } catch (err) {
+            console.error(err);
+            onConnectedCallback(err);
+        }
     }
 }
 
