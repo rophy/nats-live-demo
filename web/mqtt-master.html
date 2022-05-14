@@ -103,7 +103,7 @@
 
   <script type="module">
     import { config } from './scripts/aws-config.js'
-    import { MQTTPublisherDrawingContainer } from './scripts/mqtt-container.js'
+    import { MQTTPublisherDrawingContainer, MQTTSubscriberDrawingContainer } from './scripts/mqtt-container.js'
     import { connect, StringCodec } from './scripts/nats.js'
     const servers = [
       { servers: ["ws://localhost:8080"] },
@@ -132,11 +132,9 @@
     await nc.drain();
     nc.close();
 
-    $("#loader").hide();
-
     // var MQTTPublisher = null;
     // var MQTTSubscriber = null;
-    // var wsConnections  = 0;
+    var wsConnections  = 0;
 
     // // cognito authentication completed callback
     // // - take this opportunity to instantiate the
@@ -145,21 +143,21 @@
     // {
     //   console.log("cognito connected");
 
-    // MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
-    //   MQTTSubscriber.startWebSocket(onConnected);
+    window.MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
+    MQTTSubscriber.startWebSocket(onConnected);
 
-      window.MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', config, onPublisherStatistics);
-    //   MQTTPublisher.startWebSocket(onConnected);
+    window.MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', config, onPublisherStatistics);
+    MQTTPublisher.startWebSocket(onConnected);
     // };
 
-    // function onConnected()
-    // {
-    //   if ( ++wsConnections == 2 )
-    //     $("#loader").hide();
+    function onConnected()
+    {
+      if ( ++wsConnections == 2 )
+        $("#loader").hide();
 
-    // }
+    }
 
-    // var aggregateStatistics = {};
+    var aggregateStatistics = {};
 
     function onPublisherStatistics(statistics)
     {

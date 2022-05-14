@@ -2,6 +2,8 @@ var config = {
 
 	"NATS_URL": "ws://localhost:8080",
 
+	"NATS_TOPIC": "drawing",
+
 	"Region" : "ap-northeast-1",
 
 	"Cognito" : {
