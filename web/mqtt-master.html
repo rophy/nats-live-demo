@@ -23,15 +23,15 @@
         </div>
         <ul class="thumbnails">
           <li class="span4">
+            <div class="caption">
+              <h2>Publisher</h2>
+              <p>Mouse moves are published to a topic</p>
+            </div>
             <div class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <canvas id="mqtt_publisher_div" width="370" height="400">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
-              </div>
-              <div class="caption">
-                <h2>Publisher</h2>
-                <p>Mouse moves are published to a topic</p>
               </div>
               <div class="modal-footer" style="text-align: center">
                 <div class="row-fluid">
@@ -46,43 +46,19 @@
                 <p>
                   Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
                 </p>
-                <form id="config-form">
-                  <fieldset>
-                    <legend>Configuration</legend>
-                    <label>NATS URL</label>
-                    <input name="nats_url" type="text" value="ws://localhost:8080">
-                    <label class="radio" onclick="onClickNatsType()">
-                      <input type="radio" name="nats_type" value="core" checked>
-                      NATS Core
-                    </label>
-                    <label class="radio" onclick="onClickNatsType()">
-                      <input type="radio" name="nats_type" value="jetstream">
-                      JetStream
-                    </label>
-                  </fieldset>
-                  <fieldset id="config-core">
-                    <label>Topic</label>
-                    <input name="topic" type="text" value="drawing">
-                  </fieldset>
-                  <fieldset id="config-jetstream" style="display: none;">
-                    <label>Stream</label>
-                    <input name="stream" type="text" value="drawing">
-                  </fieldset>
-                </form>
-                <button type="button" class="btn" onclick="onClickReconnect()">Reconnect</button>
                 <button type="button" class="btn btn-primary btn-md" onclick="MQTTPublisher.clearCanvas()">Clear drawing</button>
             </div>
           </li>
           <li class="span4">
             <div class="thumbnail" style="padding: 0">
+              <div class="caption">
+                <h2>Subscriber</h2>
+                <p>Messages received will be plotted on canvas</p>
+              </div>
               <div style="padding:4px">
                 <canvas id="mqtt_subscriber_div" width="370" height="400">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
-              </div>
-              <div class="caption">
-                <h2>Subscriber</h2>
-                <p>Messages received will be plotted on canvas</p>
               </div>
               <div class="modal-footer" style="text-align: center">
                 <div class="row-fluid">
@@ -95,12 +71,11 @@
 
   </div>
 
+  <script src="scripts/config.js"></script>
   <script>
     var wsConnections = 0;
     function getConfig() {
-      let config = {};
-      $("#config-form").serializeArray().map(function(x){config[x.name] = x.value;});
-      return config;
+      return window.config;
     }
     function onClickNatsType() {
       let config = getConfig();
@@ -145,7 +120,6 @@
     import { MQTTPublisherDrawingContainer, MQTTSubscriberDrawingContainer } from './scripts/mqtt-container.js'
 
 
-    let config = getConfig();
     console.log('config', config);
 
     window.MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
