@@ -1,5 +1,8 @@
 // -- note drawing-container.js must be included above this module
 
+import { connect, StringCodec } from './nats.js'
+import { EventPublisherDrawingContainer, EventSubscriberDrawingContainer } from './drawing-container.js'
+
 function MQTTWebSocketService()
 {
     var service = {};
@@ -415,31 +418,12 @@ class MQTTPublisherDrawingContainer extends EventPublisherDrawingContainer
         );
     }
 
-    startWebSocket(onConnectedCallback)
+    async startWebSocket(onConnectedCallback)
     {
-        var ws = new MQTTWebSocketService();
-
-        this.webSocket = ws;
-
-        this.webSocket.Connect(this.configuration.IoT.Endpoint,
-                               this.configuration.Region,
-                               function(succeeded)
-                               {
-                                   // -- connection complete callback
-                                   if(succeeded)
-                                   {
-                                       console.log("websocket connection successful");
-                                       if (onConnectedCallback)
-                                        onConnectedCallback();
-                                   }
-                                   else
-                                   {
-                                       console.log("websocket connection failed");
-                                   }
-                               },
-                               function(jsonMsg)
-                               {
-                                   // -- connection update callback
-                               });
+        const nc = await connect({ servers: config.NATS_URL });
+        console.log(`connected to ${nc.getServer()}`);
+        this.webSocket = nc;
     }
 }
+
+export { MQTTPublisherDrawingContainer };

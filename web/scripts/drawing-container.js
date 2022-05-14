@@ -169,3 +169,5 @@ class EventSubscriberDrawingContainer extends DrawingContainer
         this.BroadcastStatistics();
     }
 };
+
+export { DrawingContainer, EventPublisherDrawingContainer, EventSubscriberDrawingContainer};

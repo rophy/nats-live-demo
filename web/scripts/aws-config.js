@@ -39,4 +39,4 @@ var config = {
 	}
 }
 
-export { config as config };
+export { config };

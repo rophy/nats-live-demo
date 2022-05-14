@@ -103,6 +103,7 @@
 
   <script type="module">
     import { config } from './scripts/aws-config.js'
+    import { MQTTPublisherDrawingContainer } from './scripts/mqtt-container.js'
     import { connect, StringCodec } from './scripts/nats.js'
     const servers = [
       { servers: ["ws://localhost:8080"] },
@@ -131,32 +132,34 @@
     await nc.drain();
     nc.close();
 
-    var MQTTPublisher = null;
-    var MQTTSubscriber = null;
-    var wsConnections  = 0;
+    $("#loader").hide();
 
-    // cognito authentication completed callback
-    // - take this opportunity to instantiate the
-    //   pub/sub components
-    var cognitoConnectedFunction = function(configuration)
-    {
-      console.log("cognito connected");
+    // var MQTTPublisher = null;
+    // var MQTTSubscriber = null;
+    // var wsConnections  = 0;
 
-      MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', configuration, onSubscriberStatistics);
-      MQTTSubscriber.startWebSocket(onConnected);
+    // // cognito authentication completed callback
+    // // - take this opportunity to instantiate the
+    // //   pub/sub components
+    // var cognitoConnectedFunction = function(configuration)
+    // {
+    //   console.log("cognito connected");
 
-      MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', configuration, onPublisherStatistics);
-      MQTTPublisher.startWebSocket(onConnected);
-    };
+    // MQTTSubscriber = new MQTTSubscriberDrawingContainer('mqtt_subscriber_div', config, onSubscriberStatistics);
+    //   MQTTSubscriber.startWebSocket(onConnected);
 
-    function onConnected()
-    {
-      if ( ++wsConnections == 2 )
-        $("#loader").hide();
+      window.MQTTPublisher = new MQTTPublisherDrawingContainer('mqtt_publisher_div', config, onPublisherStatistics);
+    //   MQTTPublisher.startWebSocket(onConnected);
+    // };
 
-    }
+    // function onConnected()
+    // {
+    //   if ( ++wsConnections == 2 )
+    //     $("#loader").hide();
 
-    var aggregateStatistics = {};
+    // }
+
+    // var aggregateStatistics = {};
 
     function onPublisherStatistics(statistics)
     {
@@ -177,9 +180,6 @@
 
   <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
   <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-
-  <script src="scripts/drawing-container.js"></script>
-  <script src="scripts/mqtt-container.js"></script>
 
 </body>
 </html>
