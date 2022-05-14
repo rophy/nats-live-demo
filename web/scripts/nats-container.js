@@ -106,14 +106,16 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
         };
     }
 
-    clearCanvas()
+    clearCanvas(skipMsg)
     {
         super.clearCanvas();
         let payload = { x:0, y:0, timestamp: new Date().getTime(), clear:true };
-        this.nc.publish(
-            this.configuration.topic,
-            sc.encode(JSON.stringify(payload))
-        );
+        if (!skipMsg) {
+            this.nc.publish(
+                this.configuration.topic,
+                sc.encode(JSON.stringify(payload))
+            );
+        }
     }
 
     async startWebSocket(onConnectedCallback, configuration)

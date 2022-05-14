@@ -9,9 +9,13 @@
     <style type="text/css">
 
     canvas {
-      background-color: #dddddd;
+      background-color: #eeeeee;
       width: 100%;
       height: auto;
+    }
+
+    .canvas_sub {
+      background-color: #cccccc;
     }
     </style>
   </head>
@@ -60,7 +64,7 @@
                 <p>
                   Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
                 </p>
-                <button type="button" class="btn btn-primary btn-md" onclick="NATSPublisher.clearCanvas()">Clear drawing</button>
+                <button type="button" class="btn btn-primary btn-md" onclick="clearCanvas()">Clear drawing</button>
                 <div class="btn-group">
                   <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
                     Switch Demo
@@ -81,7 +85,7 @@
             <div class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Subscriber 1</h4>
-                <canvas id="nats_subscriber_div" width="370" height="200">
+                <canvas id="nats_subscriber_div" class="canvas_sub" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
@@ -95,7 +99,7 @@
             <div class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Subscriber 2</h4>
-                <canvas id="nats_subscriber_div2" width="370" height="200">
+                <canvas id="nats_subscriber_div2" class="canvas_sub" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
               </div>
@@ -146,6 +150,11 @@
       } catch (err) {
         console.error(err);
       }
+    }
+    function clearCanvas() {
+      console.log('test');
+      NATSPublisher.clearCanvas();
+      NATSPublisher2.clearCanvas(true);
     }
     function addAlert(message) {
       $('#alerts').append(
