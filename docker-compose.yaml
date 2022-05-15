@@ -5,7 +5,7 @@ services:
     volumes:
       - ./web:/usr/share/nginx/html
     ports:
-      - "8000:80"
+      - "8080:80"
   nats:
     image: nats:2.8.2
     command: -js -c /app/nats.conf
@@ -15,4 +15,4 @@ services:
       - "4222:4222"
       - "6222:6222"
       - "8222:8222"
-      - "8080:8080"
+      - "8000:8000"
