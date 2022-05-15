@@ -42,6 +42,7 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
             let point = JSON.parse(sc.decode(m.data));
             console.log(this.instanceId, sub.getProcessed(), point);
             this.processMessage(point);
+            await new Promise(r => setTimeout(r, this.configuration.delay));
         }
         console.log(this.instanceId, "subscription closed");
     }

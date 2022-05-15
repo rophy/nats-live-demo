@@ -60,20 +60,27 @@
                 <p>
                   Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
                 </p>
-                <label class="checkbox">
-                  <input id="enableQueueGroup" onchange="onChangeQueueGroup()" type="checkbox"> Enable <a target="_blank" href="https://docs.nats.io/nats-concepts/core-nats/queue">Queue Group</a> for subscribers.
-                </label>
-                <button type="button" class="btn btn-primary btn-md" onclick="clearCanvas()">Clear drawing</button>
-                <div class="btn-group">
-                  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                    Switch Demo
-                    <span class="caret"></span>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a tabindex="-1" href="/">NATS Core</a></li>
-                    <li><a tabindex="-1" href="/queue-group.html">NATS Core + Queue Group</a></li>
-                  </ul>
-                </div>
+                <form>
+                  <fieldset>
+                    <label class="checkbox">
+                      <input id="enableQueueGroup" onchange="onChangeQueueGroup()" type="checkbox"> Enable <a target="_blank" href="https://docs.nats.io/nats-concepts/core-nats/queue">Queue Group</a> for subscribers.
+                    </label>
+                    <label class="checkbox">
+                      <input id="delay" onchange="onChangeDelay()" type="checkbox"> Slow down subscriber playback.
+                    </label>
+                    <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
+                    <div class="btn-group">
+                      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                        Switch Demo
+                        <span class="caret"></span>
+                      </a>
+                      <ul class="dropdown-menu">
+                        <li><a tabindex="-1" href="/">NATS Core</a></li>
+                        <li><a tabindex="-1" href="/queue-group.html">NATS Core + Queue Group</a></li>
+                      </ul>
+                    </div>
+                  </fieldset>
+                </form>
             </div>
           </li>
           <li class="span4">
@@ -116,6 +123,7 @@
       // imported from ./scripts/config.js
       let config = window.config;
       config.enableQueueGroup = document.getElementById('enableQueueGroup').checked;
+      config.delay = 0; //parseInt(document.getElementById('delay').value);
       return window.config;
     }
     function onClickNatsType() {
@@ -130,6 +138,9 @@
     }
     function onChangeQueueGroup() {
       reconnectNats()
+    }
+    function onChangeDelay() {
+      getConfig().delay = document.getElementById('delay').checked ? 100 : 0;
     }
     function onConnected(err) {
       if (err) {
