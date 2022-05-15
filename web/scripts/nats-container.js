@@ -28,6 +28,11 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
     async startWebSocket(onConnectedCallback)
     {
         try {
+            if (this.nc) {
+                await this.nc.close();
+                await this.nc.closed();
+                delete this.nc;
+            }
             this.nc = await connect({ servers: this.configuration.nats_url });
             console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
             onConnectedCallback();
@@ -47,12 +52,14 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
         console.log(this.instanceId, "subscription closed");
     }
 
-    async stopWebSocket() {
+    async stopWebSocket(onDisconnectedCallback) {
         if (this.nc) {
             await this.nc.close();
             await this.nc.closed();
             console.log(this.instanceId, 'connection closed.');
+            delete this.nc;
         }
+        if (onDisconnectedCallback) onDisconnectedCallback();
     }
 
 
@@ -124,6 +131,11 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
     async startWebSocket(onConnectedCallback)
     {
         try {
+            if (this.nc) {
+                await this.nc.close();
+                await this.nc.closed();
+                delete this.nc;
+            }
             this.nc = await connect({ servers: this.configuration.nats_url });
             console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
             onConnectedCallback();
@@ -133,12 +145,14 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
         }
     }
 
-    async stopWebSocket() {
+    async stopWebSocket(onDisconnectedCallback) {
         if (this.nc) {
             await this.nc.close();
             await this.nc.closed();
+            delete this.nc;
             console.log(this.instanceId, 'connection closed.');
         }
+        if (onDisconnectedCallback) onDisconnectedCallback();
     }
 
 }

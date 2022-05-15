@@ -10,6 +10,7 @@ class DrawingContainer
               )
     {
         var container = document.getElementById(containerName);
+        console.log('container', container);
         container.drawingInstance = this;
 
         this.configuration      = configuration;

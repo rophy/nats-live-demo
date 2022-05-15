@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Demo - NATS Core</title>
+    <title>Demo - NATS Core (Manual)</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
@@ -27,27 +27,39 @@
         </div>
         <ul class="thumbnails">
           <li class="span4">
-            <div class="thumbnail" style="padding: 0">
+            <div id="publisher_1" class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Publisher 1</h4>
                 <canvas id="nats_publisher_div" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
+                <form>
+                  <fieldset>
+                    <button type="button" class="btn btn-primary connect" onclick="reconnect('NATSPublisher', 'NATSPublisherDrawingContainer', '#publisher_1', getConfig(), onPublisherStatistics)">Connect</button>
+                    <button type="button" class="btn btn-default" onclick="NATSPublisher.clearCanvas()">Clear</button>
+                  </fieldset>
+                </form>
               </div>
-              <div class="modal-footer" style="text-align: center">
+              <div class="modal-footer">
                 <div class="row-fluid">
                   <div id="msgSent" class="span12"><b>0</b><br/><small>Messages Sent</small></div>
                 </div>
               </div>
             </div>
-            <div class="thumbnail" style="padding: 0">
+            <div id="publisher_2" class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Publisher 2</h4>
                 <canvas id="nats_publisher_div2" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
+                <form>
+                  <fieldset>
+                    <button type="button" class="btn btn-primary connect" onclick="reconnect('NATSPublisher2', 'NATSPublisherDrawingContainer', '#publisher_2', getConfig(), onPublisherStatistics2)">Connect</button>
+                    <button type="button" class="btn btn-default" onclick="NATSPublisher2.clearCanvas()">Clear</button>
+                  </fieldset>
+                </form>
               </div>
-              <div class="modal-footer" style="text-align: center">
+              <div class="modal-footer">
                 <div class="row-fluid">
                   <div id="msgSent2" class="span12"><b>0</b><br/><small>Messages Sent</small></div>
                 </div>
@@ -55,7 +67,7 @@
             </div>
           </li>
           <li class="span4">
-              <h2>Demo - NATS Core</h2>
+              <h2>Demo - NATS Core (Manual)</h2>
               <div style="padding:7px;color:#666666">
                 <p>
                   Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
@@ -84,28 +96,40 @@
             </div>
           </li>
           <li class="span4">
-            <div class="thumbnail" style="padding: 0">
+            <div id="subscriber_1" class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Subscriber 1</h4>
                 <canvas id="nats_subscriber_div" class="canvas_sub" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
+                <form>
+                  <fieldset>
+                    <button type="button" class="btn btn-primary connect" onclick="reconnect('NATSSubscriber', 'NATSSubscriberDrawingContainer', '#subscriber_1', getConfig(), onSubscriberStatistics)">Connect</button>
+                    <button type="button" class="btn btn-default" onclick="NATSSubscriber.clearCanvas()">Clear</button>
+                  </fieldset>
+                </form>
               </div>
-              <div class="modal-footer" style="text-align: center">
+              <div class="modal-footer">
                 <div class="row-fluid">
                   <div id="msgReceived" class="span6"><b>0</b><br/><small>Messages Received</small></div>
                   <div id="msgLatencyAverage" class="span6"><b>0</b><br/><small>Average Latency</small></div>
                 </div>
               </div>
             </div>
-            <div class="thumbnail" style="padding: 0">
+            <div id="subscriber_2" class="thumbnail" style="padding: 0">
               <div style="padding:4px">
                 <h4>Subscriber 2</h4>
                 <canvas id="nats_subscriber_div2" class="canvas_sub" width="370" height="200">
                   Sorry, your browser doesn't support the &lt;canvas&gt; element.
                 </canvas>
+                <form>
+                  <fieldset>
+                    <button type="button" class="btn btn-primary connect" onclick="reconnect('NATSSubscriber2', 'NATSSubscriberDrawingContainer', '#subscriber_2', getConfig(), onSubscriberStatistics2)">Connect</button>
+                    <button type="button" class="btn btn-default" onclick="NATSSubscriber2.clearCanvas()">Clear</button>
+                  </fieldset>
+                </form>
               </div>
-              <div class="modal-footer" style="text-align: center">
+              <div class="modal-footer">
                 <div class="row-fluid">
                   <div id="msgReceived2" class="span6"><b>0</b><br/><small>Messages Received</small></div>
                   <div id="msgLatencyAverage2" class="span6"><b>0</b><br/><small>Average Latency</small></div>
@@ -139,20 +163,11 @@
       }
     }
     function onChangeQueueGroup() {
-      reconnectNats()
     }
     function onChangeDelay() {
       let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
       NATSSubscriber.configuration.delay = delay;
       NATSSubscriber2.configuration.delay = delay;
-    }
-    function onConnected(err) {
-      if (err) {
-        console.error('ERRR', err)
-        addAlert(err);
-      }
-      if ( ++wsConnections == 4 )
-        $("#loader").hide();
     }
     function clearCanvas() {
       NATSPublisher.clearCanvas();
@@ -166,16 +181,42 @@
             '<button type="button" class="close" data-dismiss="alert">' +
             '&times;</button>' + message + '</div>');
     }
+    function onPublisherStatistics(statistics) {
+      //console.log(statistics.MessagesSent);
+      $("#msgSent").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
+    }
+
+    function onPublisherStatistics2(statistics) {
+      //console.log(statistics.MessagesSent);
+      $("#msgSent2").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
+    }
+
+    function onSubscriberStatistics(statistics) {
+      $("#msgReceived").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
+      $("#msgLatencyAverage").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
+    }
+
+    function onSubscriberStatistics2(statistics) {
+      $("#msgReceived2").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
+      $("#msgLatencyAverage2").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
+    }
+
   </script>
 
   <script type="module">
     import { NATSPublisherDrawingContainer, NATSSubscriberDrawingContainer } from './scripts/nats-container.js'
 
+    window.NATSSubscriberDrawingContainer = NATSSubscriberDrawingContainer;
+    window.NATSPublisherDrawingContainer = NATSPublisherDrawingContainer;
+
+    function createContainer(globalVarName, containerClass, containerDiv, config, onStatistics) {
+      window[globalVarName] = new window[containerClass](containerDiv, config, onStatistics);
+    }
     function createContainers() {
-      window.NATSSubscriber = new NATSSubscriberDrawingContainer('nats_subscriber_div', getConfig(), onSubscriberStatistics);
-      window.NATSSubscriber2 = new NATSSubscriberDrawingContainer('nats_subscriber_div2', getConfig(), onSubscriberStatistics2);
-      window.NATSPublisher = new NATSPublisherDrawingContainer('nats_publisher_div', getConfig(), onPublisherStatistics);
-      window.NATSPublisher2 = new NATSPublisherDrawingContainer('nats_publisher_div2', getConfig(), onPublisherStatistics2);
+      createContainer("NATSSubscriber", "NATSSubscriberDrawingContainer", "nats_subscriber_div", getConfig(), onSubscriberStatistics);
+      createContainer("NATSSubscriber2", "NATSSubscriberDrawingContainer", "nats_subscriber_div2", getConfig(), onSubscriberStatistics2);
+      createContainer("NATSPublisher", "NATSPublisherDrawingContainer", "nats_publisher_div", getConfig(), onPublisherStatistics);
+      createContainer("NATSPublisher2", "NATSPublisherDrawingContainer", "nats_publisher_div2", getConfig(), onPublisherStatistics2);
 
       // differentiate color.
       NATSPublisher.configuration.color = "#F4D14F";
@@ -183,6 +224,44 @@
 
     }
     window.createContainers = createContainers;
+
+    function onConnected(err, containerDiv) {
+      if (err) {
+        console.error('ERRR', err)
+        addAlert(err);
+      }
+      if (containerDiv) {
+        $(containerDiv + ' .connect').removeClass('btn-primary').addClass('btn-warning').html('Disconnect')
+      }
+      $('#loader').hide();
+    }
+    function onDisconnected(containerDiv) {
+      if (containerDiv) {
+        $(containerDiv + ' .connect').removeClass('btn-warning').addClass('btn-primary').html('Connect')
+      }
+      $('#loader').hide();
+    }
+    async function reconnect(globalVarName, containerClass, containerDiv, config, onStatistics) {
+      let afterConnect = (err) => onConnected(err, containerDiv);
+      let afterDisconnect = () => onDisconnected(containerDiv);
+      $("#loader").show();
+      try {
+        if (window[globalVarName] && window[globalVarName].nc) {
+          return await window[globalVarName].stopWebSocket(afterDisconnect);
+        }
+        let canvasId = $(containerDiv + ' canvas').get(0).id;
+        createContainer(globalVarName, containerClass, canvasId, config, onStatistics);
+        window[globalVarName].clearCanvas();
+        if (containerClass.indexOf('Subscriber') != -1) {
+          window[globalVarName].startWebSocket(afterConnect);
+        } else {
+          await window[globalVarName].startWebSocket(afterConnect);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    window.reconnect = reconnect;
 
     async function reconnectNats() {
       $("#loader").show();
@@ -205,27 +284,6 @@
     }
     window.reconnectNats = reconnectNats;
 
-    function onPublisherStatistics(statistics) {
-      //console.log(statistics.MessagesSent);
-      $("#msgSent").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
-    }
-
-    function onPublisherStatistics2(statistics) {
-      //console.log(statistics.MessagesSent);
-      $("#msgSent2").html("<b>"+statistics.MessagesSent + "</b><br>Messages Sent");
-    }
-
-    function onSubscriberStatistics(statistics) {
-      $("#msgReceived").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
-      $("#msgLatencyAverage").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
-    }
-
-    function onSubscriberStatistics2(statistics) {
-      $("#msgReceived2").html("<b>"+statistics.MessagesReceived + "</b><br>Messages Received");
-      $("#msgLatencyAverage2").html("<b>"+ ~~(statistics.MessageLatencyAverage) + "ms</b><br>Average Latency");
-    }
-
-    reconnectNats();
 
   </script>
 
