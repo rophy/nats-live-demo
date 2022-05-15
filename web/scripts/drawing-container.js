@@ -82,9 +82,10 @@ class DrawingContainer
         return canvas;
     }
 
-    drawPoint(x ,y)
+    drawPoint(x ,y, color)
     {
-        this.ctx.fillCircle(x, y, 5, '#f6b500');
+        color = color || this.configuration.color || '#f6b500';
+        this.ctx.fillCircle(x, y, 5, color);
     }
 
     resetMessageCounter()
@@ -151,7 +152,7 @@ class EventSubscriberDrawingContainer extends DrawingContainer
         var dateNow  = new Date().getTime();
         var tickDiff = dateNow - message.timestamp;
 
-        this.drawPoint(message.x, message.y);
+        this.drawPoint(message.x, message.y, message.c);
 
         this.statistics.MessageLatencyAggregate += tickDiff;
         this.statistics.MessageLatencyAverage = this.statistics.MessageLatencyAggregate / this.statistics.MessagesReceived;

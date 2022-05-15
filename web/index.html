@@ -66,7 +66,7 @@
                       <input id="enableQueueGroup" onchange="onChangeQueueGroup()" type="checkbox"> Enable <a target="_blank" href="https://docs.nats.io/nats-concepts/core-nats/queue">Queue Group</a> for subscribers.
                     </label>
                     <label class="checkbox">
-                      <input id="delay" onchange="onChangeDelay()" type="checkbox"> Slow down subscriber playback.
+                      <input id="delay" onchange="onChangeDelay()" type="checkbox" value="100"> Slow down subscriber playback.
                     </label>
                     <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
                     <div class="btn-group">
@@ -120,11 +120,13 @@
   <script>
     var wsConnections = 0;
     function getConfig() {
-      // imported from ./scripts/config.js
-      let config = window.config;
+      // window.config is imported from ./scripts/config.js
+      // simple deep clone
+      let config = JSON.parse(JSON.stringify(window.config));
       config.enableQueueGroup = document.getElementById('enableQueueGroup').checked;
-      config.delay = 0; //parseInt(document.getElementById('delay').value);
-      return window.config;
+      let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
+      config.delay = delay;
+      return config;
     }
     function onClickNatsType() {
       let config = getConfig();
@@ -140,7 +142,9 @@
       reconnectNats()
     }
     function onChangeDelay() {
-      getConfig().delay = document.getElementById('delay').checked ? 100 : 0;
+      let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
+      NATSSubscriber.configuration.delay = delay;
+      NATSSubscriber2.configuration.delay = delay;
     }
     function onConnected(err) {
       if (err) {
@@ -168,12 +172,15 @@
     import { NATSPublisherDrawingContainer, NATSSubscriberDrawingContainer } from './scripts/nats-container.js'
 
     function createContainers() {
-      let config = getConfig();
-      console.log('config', config);
-      window.NATSSubscriber = new NATSSubscriberDrawingContainer('nats_subscriber_div', config, onSubscriberStatistics);
-      window.NATSSubscriber2 = new NATSSubscriberDrawingContainer('nats_subscriber_div2', config, onSubscriberStatistics2);
-      window.NATSPublisher = new NATSPublisherDrawingContainer('nats_publisher_div', config, onPublisherStatistics);
-      window.NATSPublisher2 = new NATSPublisherDrawingContainer('nats_publisher_div2', config, onPublisherStatistics2);
+      window.NATSSubscriber = new NATSSubscriberDrawingContainer('nats_subscriber_div', getConfig(), onSubscriberStatistics);
+      window.NATSSubscriber2 = new NATSSubscriberDrawingContainer('nats_subscriber_div2', getConfig(), onSubscriberStatistics2);
+      window.NATSPublisher = new NATSPublisherDrawingContainer('nats_publisher_div', getConfig(), onPublisherStatistics);
+      window.NATSPublisher2 = new NATSPublisherDrawingContainer('nats_publisher_div2', getConfig(), onPublisherStatistics2);
+
+      // differentiate color.
+      NATSPublisher.configuration.color = "#F4D14F";
+      NATSPublisher2.configuration.color = "#8CC9BA";
+
     }
     window.createContainers = createContainers;
 

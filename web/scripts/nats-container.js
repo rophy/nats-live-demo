@@ -89,7 +89,7 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
 
             async function pointIdleDispatch(point)
             {
-                let payload = { x:x, y:y, timestamp: new Date().getTime(), clear:false };
+                let payload = { x:x, y:y, timestamp: new Date().getTime(), c: self.configuration.color};
                 await self.nc.publish(
                   self.configuration.topic,
                   sc.encode(JSON.stringify(payload))
