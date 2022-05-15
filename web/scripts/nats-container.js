@@ -5,6 +5,9 @@ import { EventPublisherDrawingContainer, EventSubscriberDrawingContainer } from 
 
 const sc = StringCodec();
 
+// a global incrementing counter for troubleshooting convinence.
+let globalInstanceId = 0;
+
 /**
  * extend the basic point drawing canvas so that instances listen for
  * messages on the given NATS instance which are then drawn as points
@@ -13,38 +16,42 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 {
     constructor(counterElementName,
                 configuration,
-                statisticsCallback,
-                extraConfig
+                statisticsCallback
               )
     {
         super(counterElementName, configuration, statisticsCallback);
-        this.extraConfig = extraConfig || {};
+        this.instanceId = `subscriber_${++globalInstanceId}`;
     }
 
     // -- receiver methods
 
-    async startWebSocket(onConnectedCallback, configuration)
+    async startWebSocket(onConnectedCallback)
     {
         try {
-            if (configuration) this.configuration = configuration;
             this.nc = await connect({ servers: this.configuration.nats_url });
-            console.log(`connected to ${this.nc.getServer()}`);
+            console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
             onConnectedCallback();
         } catch (err) {
             return onConnectedCallback(err);
         }
 
-        console.log(this.extraConfig, this.configuration)
-
         const sub = this.nc.subscribe(this.configuration.topic, {
-            queue: this.extraConfig.enableQueueGroup ? this.configuration.queue : null
+            queue: this.configuration.enableQueueGroup ? this.configuration.queue : null
         });
         for await (const m of sub) {
             let point = JSON.parse(sc.decode(m.data));
-            console.log(sub.getProcessed(), point);
+            console.log(this.instanceId, sub.getProcessed(), point);
             this.processMessage(point);
         }
-        console.log("subscription closed");
+        console.log(this.instanceId, "subscription closed");
+    }
+
+    async stopWebSocket() {
+        if (this.nc) {
+            await this.nc.close();
+            await this.nc.closed();
+            console.log(this.instanceId, 'connection closed.');
+        }
     }
 
 
@@ -62,6 +69,7 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
               )
     {
         super(counterElementName, configuration, statisticsCallback);
+        this.instanceId = `publisher_${++globalInstanceId}`;
 
         var self = this;
         this.nc = null;
@@ -78,10 +86,10 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
             var x = e.clientX - self.offset(this).left;
             var y = e.clientY - self.offset(this).top;
 
-            function pointIdleDispatch(point)
+            async function pointIdleDispatch(point)
             {
                 let payload = { x:x, y:y, timestamp: new Date().getTime(), clear:false };
-                self.nc.publish(
+                await self.nc.publish(
                   self.configuration.topic,
                   sc.encode(JSON.stringify(payload))
                 );
@@ -112,30 +120,26 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
         };
     }
 
-    clearCanvas(skipMsg)
-    {
-        super.clearCanvas();
-        let payload = { x:0, y:0, timestamp: new Date().getTime(), clear:true };
-        if (!skipMsg) {
-            this.nc.publish(
-                this.configuration.topic,
-                sc.encode(JSON.stringify(payload))
-            );
-        }
-    }
-
-    async startWebSocket(onConnectedCallback, configuration)
+    async startWebSocket(onConnectedCallback)
     {
         try {
-            if (configuration) this.configuration = configuration;
             this.nc = await connect({ servers: this.configuration.nats_url });
-            console.log(`connected to ${this.nc.getServer()}`);
+            console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
             onConnectedCallback();
         } catch (err) {
             console.error(err);
             onConnectedCallback(err);
         }
     }
+
+    async stopWebSocket() {
+        if (this.nc) {
+            await this.nc.close();
+            await this.nc.closed();
+            console.log(this.instanceId, 'connection closed.');
+        }
+    }
+
 }
 
 export { NATSPublisherDrawingContainer, NATSSubscriberDrawingContainer };

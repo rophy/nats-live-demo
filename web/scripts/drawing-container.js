@@ -10,6 +10,7 @@ class DrawingContainer
               )
     {
         var container = document.getElementById(containerName);
+        container.drawingInstance = this;
 
         this.configuration      = configuration;
         this.isDrawing          = false;
@@ -69,7 +70,6 @@ class DrawingContainer
     {
         this.ctx.clearTo("#000");
         this.resetMessageCounter();
-        this.statistics.MessagesSent++;
         this.BroadcastStatistics();
     }
 
@@ -151,20 +151,10 @@ class EventSubscriberDrawingContainer extends DrawingContainer
         var dateNow  = new Date().getTime();
         var tickDiff = dateNow - message.timestamp;
 
-        if(message.clear)
-        {
-            this.clearCanvas();
-            this.statistics.MessageLatencyAggregate = tickDiff;
-            this.statistics.MessageLatencyAverage   = tickDiff;
-        }
-        else
-        {
-            this.drawPoint(message.x, message.y);
+        this.drawPoint(message.x, message.y);
 
-            this.statistics.MessageLatencyAggregate += tickDiff;
-            this.statistics.MessageLatencyAverage = this.statistics.MessageLatencyAggregate / this.statistics.MessagesReceived;
-        }
-
+        this.statistics.MessageLatencyAggregate += tickDiff;
+        this.statistics.MessageLatencyAverage = this.statistics.MessageLatencyAggregate / this.statistics.MessagesReceived;
         this.statistics.MessagesReceived++;
         this.BroadcastStatistics();
     }
