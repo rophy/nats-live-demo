@@ -1,6 +1,6 @@
 // -- note drawing-container.js must be included above this module
 
-import { connect, StringCodec } from './nats.js'
+import { connect, StringCodec, AckPolicy } from './nats.js'
 import { EventPublisherDrawingContainer, EventSubscriberDrawingContainer } from './drawing-container.js'
 
 function assert(expr, message) {
@@ -81,21 +81,32 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
                 }
 
                 const js = this.nc.jetstream();
-                const psub = await js.pullSubscribe(this.configuration.topic, {
-                    stream: this.configuration.stream,
-                    config: {
-                        durable_name: this.configuration.consumer
-                    }
-                });
+                let psub = null;
+                if (this.configuration.enablePushMode) {
+                    console.log(this.instanceId, 'subscribing', this.configuration.topic);
+                    psub = await js.subscribe(this.configuration.topic, {
+                        stream: this.configuration.stream,
+                        config: {
+                            // a unique delivery subject to "push" to messages to.
+                            deliver_subject: `${this.instanceId}_${Date.now()}`,
+                            ack_policy: AckPolicy.None
+                        }
+                    });
+                } else {
+                    psub = await js.pullSubscribe(this.configuration.topic, {
+                        stream: this.configuration.stream,
+                        config: {
+                            durable_name: this.configuration.consumer
+                        }
+                    });
+                }
 
                 onConnectedCallback();
                 this.consumeMessages(psub);
-                while (true) {
+                if (!this.configuration.enablePushMode) while (true) {
                     await psub.pull({ batch: this.configuration.batchSize, expires: this.configuration.loopDelay });
                     await sleep(this.configuration.loopDelay);
                 }
-
-
             }
         } catch (err) {
             return onConnectedCallback(err);

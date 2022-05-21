@@ -61,24 +61,14 @@
           </li>
           <li class="span4">
               <h2>NATS JetStream</h2>
-              <h4>Pull consumers with batching</h4>
-              <p>The most basic scenario of JetStream is a pull consumer, where clients pull messages in batch with a loop. Pull consumers are meant to be shared between clients (just like queue groups) for horizontal scalability.</p>
-              <p>Main loop of a client looks like this:</p>
-              <code>while(true) {
-  sub.pull({ batch: 10, expire: 2000 });
-  sleep(2000);
-}</code>
-                <label>Pending Msgs</label>
-                <input id="pending" type="number" value="0" disabled>
+              <h4>Fast push consumers</h4>
+              <p>Un-acknolwedged push (ordered) consumers receive messages as fast as possible.  Those consumers are meant to be used to 'replay' rather than 'consume' the messages in a stream.</p>
               <form>
                 <fieldset>
-                  <label>Batch Size</label>
-                  <input id="batchSize" type="number" value="10">
-                  <label>Loop Delay (millisecs)</label>
-                  <input id="loopDelay" type="number" value="2000">
                   <label>Draw Delay (millisecs)</label>
                   <input id="playbackDelay" type="number" value="10">
                   <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
+                  <button type="button" class="btn btn-primary" onclick="deleteStream()">Delete stream</button>
                   <div class="btn-group">
                     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
                       Switch Demo
@@ -135,6 +125,7 @@
       // simple deep clone
       let config = JSON.parse(JSON.stringify(window.config));
       config.enableJetstream = true;
+      config.enablePushMode = true;
       Object.defineProperty(config, 'playbackDelay', {
         get: () => parseInt(document.getElementById('playbackDelay').value)
       });
@@ -172,6 +163,10 @@
       NATSPublisher2.clearCanvas();
       NATSSubscriber.clearCanvas();
       NATSSubscriber2.clearCanvas();
+    }
+    function deleteStream() {
+      NATSPublisher.jsm.streams.delete(getConfig().stream);
+      addAlert("Stream deleted. Reload this page to recreate stream.");
     }
     function addAlert(message) {
       $('#alerts').append(
@@ -217,7 +212,6 @@
         await window.NATSPublisher2.startWebSocket(onConnected);
         window.NATSSubscriber.startWebSocket(onConnected);
         window.NATSSubscriber2.startWebSocket(onConnected);
-        setInterval(refreshPending, 200);
       } catch (err) {
         console.error(err);
       }
