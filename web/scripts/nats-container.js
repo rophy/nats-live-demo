@@ -3,6 +3,19 @@
 import { connect, StringCodec } from './nats.js'
 import { EventPublisherDrawingContainer, EventSubscriberDrawingContainer } from './drawing-container.js'
 
+function assert(expr, message) {
+  if(!Boolean(expr)) {
+    throw new Error(message || 'unknown assertion error');
+  }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// debug
+window.connect = connect;
+
 const sc = StringCodec();
 
 // a global incrementing counter for troubleshooting convinence.
@@ -35,21 +48,69 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
             }
             this.nc = await connect({ servers: this.configuration.nats_url });
             console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
-            onConnectedCallback();
+
+            if (!this.configuration.enableJetstream) {
+
+                const sub = this.nc.subscribe(this.configuration.topic, {
+                    queue: this.configuration.enableQueueGroup ? this.configuration.queue : null
+                });
+                onConnectedCallback();
+                await this.consumeMessages(sub);
+                console.log(this.instanceId, "subscription closed");
+
+            } else {
+
+                // jetstream
+                const jsm = await this.nc.jetstreamManager();
+
+                // list all the streams, the `next()` function
+                // retrieves a paged result.
+                let myStream = null;
+                while (!myStream) {
+                    let streams = await jsm.streams.list().next();
+                    streams.forEach((si) => {
+                        if (si.config.name === this.configuration.stream ) {
+                            myStream = si;
+                        }
+                    });
+                    if (!myStream) {
+                        console.log(this.instanceId, `waiting for stream "${this.configuration.stream}" to show up...`);
+                        await sleep(3000);
+                    }
+                }
+
+                const js = this.nc.jetstream();
+                const psub = await js.pullSubscribe(this.configuration.topic, {
+                    stream: this.configuration.stream,
+                    config: {
+                        durable_name: this.configuration.consumer
+                    }
+                });
+
+                onConnectedCallback();
+                this.consumeMessages(psub);
+                console.log(this.configuration);
+                while (true) {
+                    await psub.pull({ batch: this.configuration.batchSize, expires: this.configuration.loopDelay });
+                    await sleep(this.configuration.loopDelay);
+                }
+
+
+            }
         } catch (err) {
             return onConnectedCallback(err);
         }
 
-        const sub = this.nc.subscribe(this.configuration.topic, {
-            queue: this.configuration.enableQueueGroup ? this.configuration.queue : null
-        });
+    }
+
+    async consumeMessages(sub) {
         for await (const m of sub) {
             let point = JSON.parse(sc.decode(m.data));
-            console.log(this.instanceId, sub.getProcessed(), point);
+            console.log(this.instanceId, point);
             this.processMessage(point);
             await new Promise(r => setTimeout(r, this.configuration.delay));
         }
-        console.log(this.instanceId, "subscription closed");
+        console.log(this.instanceId, 'done consuming messages');
     }
 
     async stopWebSocket(onDisconnectedCallback) {
@@ -138,6 +199,30 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
             }
             this.nc = await connect({ servers: this.configuration.nats_url });
             console.log(this.instanceId, `connected to ${this.nc.getServer()}`);
+
+            if (this.configuration.enableJetstream) {
+                // jetstream
+
+                assert(this.configuration.stream, 'missing config "stream"');
+                const jsm = await this.nc.jetstreamManager();
+
+                // list all the streams, the `next()` function
+                // retrieves a paged result.
+                const streams = await jsm.streams.list().next();
+                let myStream = null;
+                streams.forEach((si) => {
+                    if (si.config.name === this.configuration.stream ) {
+                        myStream = si;
+                    }
+                });
+
+                if (!myStream) {
+                    // add a stream
+                    await jsm.streams.add({ name: this.configuration.stream, subjects: [this.configuration.topic] });
+                    console.log(`stream "${this.configuration.stream}" created for subject "${this.configuration.topic}".`)
+                }
+            }
+
             onConnectedCallback();
         } catch (err) {
             console.error(err);

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Demo - NATS Core</title>
+    <title>Demo - JetStream</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
@@ -16,6 +16,11 @@
 
     .canvas_sub {
       background-color: #cccccc;
+    }
+
+    code {
+      display: block;
+      white-space: pre-wrap;
     }
     </style>
   </head>
@@ -55,34 +60,40 @@
             </div>
           </li>
           <li class="span4">
-              <h2>Demo - NATS Core</h2>
-              <div style="padding:7px;color:#666666">
-                <p>
-                  Use the grey canvas on the left to draw a shape with the mouse while you hold down the left mouse button.
-                </p>
-                <form>
-                  <fieldset>
-                    <label class="checkbox">
-                      <input id="enableQueueGroup" onchange="onChangeQueueGroup()" type="checkbox"> Enable <a target="_blank" href="https://docs.nats.io/nats-concepts/core-nats/queue">Queue Group</a> for subscribers.
-                    </label>
-                    <label class="checkbox">
-                      <input id="delay" onchange="onChangeDelay()" type="checkbox" value="100"> Slow down subscriber playback.
-                    </label>
-                    <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
-                    <div class="btn-group">
-                      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                        Switch Demo
-                        <span class="caret"></span>
-                      </a>
-                      <ul class="dropdown-menu">
-                        <li><a tabindex="-1" href="/">NATS Core</a></li>
-                        <li><a tabindex="-1" href="/manual.html">NATS Core (Manual)</a></li>
-                        <li><a tabindex="-1" href="/jetstream.html">JetStream</a></li>
-                      </ul>
-                    </div>
-                  </fieldset>
-                </form>
-            </div>
+              <h2>NATS JetStream</h2>
+              <h4>Pull consumers with batching</h4>
+              <p>The most basic scenario of JetStream is a pull consumer, where clients pull messages in batch with a loop. Pull consumers are meant to be shared between clients (just like queue groups) for horizontal scalability.</p>
+              <p>Main loop of a client looks like this:</p>
+              <code>while(true) {
+  subscriber.pull({
+    batchSize: 10,
+    expirationTime: 2000
+  });
+  sleep(2000);
+}</code>
+              <form>
+                <fieldset>
+                  <label>Batch Size</label>
+                  <input id="batchSize" type="number" value="10">
+                  <label>Loop Delay (millisecs)</label>
+                  <input id="loopDelay" type="number" value="2000">
+                  <label class="checkbox">
+                    <input id="delay" onchange="onChangeDelay()" type="checkbox" value="100"> Slow down subscriber playback.
+                  </label>
+                  <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
+                  <div class="btn-group">
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                      Switch Demo
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li><a tabindex="-1" href="/">NATS Core</a></li>
+                      <li><a tabindex="-1" href="/manual.html">NATS Core (Manual)</a></li>
+                      <li><a tabindex="-1" href="/jetstream.html">JetStream</a></li>
+                    </ul>
+                  </div>
+                </fieldset>
+              </form>
           </li>
           <li class="span4">
             <div class="thumbnail" style="padding: 0">
@@ -124,9 +135,10 @@
       // window.config is imported from ./scripts/config.js
       // simple deep clone
       let config = JSON.parse(JSON.stringify(window.config));
-      config.enableQueueGroup = document.getElementById('enableQueueGroup').checked;
-      let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
-      config.delay = delay;
+      config.enableJetstream = true;
+      config.delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
+      config.batchSize = parseInt(document.getElementById('batchSize').value);
+      config.loopDelay = parseInt(document.getElementById('loopDelay').value);
       return config;
     }
     function onClickNatsType() {
