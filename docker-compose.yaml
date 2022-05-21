@@ -16,3 +16,9 @@ services:
       - "6222:6222"
       - "8222:8222"
       - "8000:8000"
+  nats-box:
+    image: natsio/nats-box:0.11.0
+    init: true
+    tty: true
+    environment:
+      NATS_URL: nats:4222
