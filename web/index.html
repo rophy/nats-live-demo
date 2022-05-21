@@ -65,9 +65,8 @@
                     <label class="checkbox">
                       <input id="enableQueueGroup" onchange="onChangeQueueGroup()" type="checkbox"> Enable <a target="_blank" href="https://docs.nats.io/nats-concepts/core-nats/queue">Queue Group</a> for subscribers.
                     </label>
-                    <label class="checkbox">
-                      <input id="delay" onchange="onChangeDelay()" type="checkbox" value="100"> Slow down subscriber playback.
-                    </label>
+                    <label>Draw Delay (millisecs)</label>
+                    <input id="playbackDelay" type="number" value="10">
                     <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
                     <div class="btn-group">
                       <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
@@ -125,8 +124,9 @@
       // simple deep clone
       let config = JSON.parse(JSON.stringify(window.config));
       config.enableQueueGroup = document.getElementById('enableQueueGroup').checked;
-      let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
-      config.delay = delay;
+      Object.defineProperty(config, 'playbackDelay', {
+        get: () => parseInt(document.getElementById('playbackDelay').value)
+      });
       return config;
     }
     function onClickNatsType() {

@@ -62,6 +62,7 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 
                 // jetstream
                 const jsm = await this.nc.jetstreamManager();
+                this.jsm = jsm;
 
                 // list all the streams, the `next()` function
                 // retrieves a paged result.
@@ -89,7 +90,6 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 
                 onConnectedCallback();
                 this.consumeMessages(psub);
-                console.log(this.configuration);
                 while (true) {
                     await psub.pull({ batch: this.configuration.batchSize, expires: this.configuration.loopDelay });
                     await sleep(this.configuration.loopDelay);
@@ -103,12 +103,17 @@ class NATSSubscriberDrawingContainer extends EventSubscriberDrawingContainer
 
     }
 
+    async getConsumerInfo() {
+        let info = await this.jsm.consumers.info(this.configuration.stream, this.configuration.consumer);
+        return info;
+    }
+
     async consumeMessages(sub) {
         for await (const m of sub) {
             let point = JSON.parse(sc.decode(m.data));
             console.log(this.instanceId, point);
             this.processMessage(point);
-            await new Promise(r => setTimeout(r, this.configuration.delay));
+            await new Promise(r => setTimeout(r, this.configuration.playbackDelay));
         }
         console.log(this.instanceId, 'done consuming messages');
     }
@@ -189,8 +194,7 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
         };
     }
 
-    async startWebSocket(onConnectedCallback)
-    {
+    async startWebSocket(onConnectedCallback) {
         try {
             if (this.nc) {
                 await this.nc.close();
@@ -205,6 +209,7 @@ class NATSPublisherDrawingContainer extends EventPublisherDrawingContainer
 
                 assert(this.configuration.stream, 'missing config "stream"');
                 const jsm = await this.nc.jetstreamManager();
+                this.jsm = jsm;
 
                 // list all the streams, the `next()` function
                 // retrieves a paged result.

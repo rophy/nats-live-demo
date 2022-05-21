@@ -65,21 +65,19 @@
               <p>The most basic scenario of JetStream is a pull consumer, where clients pull messages in batch with a loop. Pull consumers are meant to be shared between clients (just like queue groups) for horizontal scalability.</p>
               <p>Main loop of a client looks like this:</p>
               <code>while(true) {
-  subscriber.pull({
-    batchSize: 10,
-    expirationTime: 2000
-  });
+  sub.pull({ batch: 10, expire: 2000 });
   sleep(2000);
 }</code>
+                <label>Pending Msgs</label>
+                <input id="pending" type="number" value="0" disabled>
               <form>
                 <fieldset>
                   <label>Batch Size</label>
                   <input id="batchSize" type="number" value="10">
                   <label>Loop Delay (millisecs)</label>
                   <input id="loopDelay" type="number" value="2000">
-                  <label class="checkbox">
-                    <input id="delay" onchange="onChangeDelay()" type="checkbox" value="100"> Slow down subscriber playback.
-                  </label>
+                  <label>Draw Delay (millisecs)</label>
+                  <input id="playbackDelay" type="number" value="10">
                   <button type="button" class="btn btn-primary" onclick="clearCanvas()">Clear drawing</button>
                   <div class="btn-group">
                     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
@@ -136,9 +134,15 @@
       // simple deep clone
       let config = JSON.parse(JSON.stringify(window.config));
       config.enableJetstream = true;
-      config.delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
-      config.batchSize = parseInt(document.getElementById('batchSize').value);
-      config.loopDelay = parseInt(document.getElementById('loopDelay').value);
+      Object.defineProperty(config, 'playbackDelay', {
+        get: () => parseInt(document.getElementById('playbackDelay').value)
+      });
+      Object.defineProperty(config, 'batchSize', {
+        get: () => parseInt(document.getElementById('batchSize').value)
+      });
+      Object.defineProperty(config, 'loopDelay', {
+        get: () => parseInt(document.getElementById('loopDelay').value)
+      });
       return config;
     }
     function onClickNatsType() {
@@ -153,11 +157,6 @@
     }
     function onChangeQueueGroup() {
       reconnectNats()
-    }
-    function onChangeDelay() {
-      let delay = document.getElementById('delay').checked ? parseInt(document.getElementById('delay').value) : 0;
-      NATSSubscriber.configuration.delay = delay;
-      NATSSubscriber2.configuration.delay = delay;
     }
     function onConnected(err) {
       if (err) {
@@ -197,6 +196,11 @@
     }
     window.createContainers = createContainers;
 
+    async function refreshPending() {
+      let info = await window.NATSSubscriber.getConsumerInfo();
+      document.getElementById('pending').value = info.num_pending;
+    }
+
     async function reconnectNats() {
       $("#loader").show();
       try {
@@ -212,6 +216,7 @@
         await window.NATSPublisher2.startWebSocket(onConnected);
         window.NATSSubscriber.startWebSocket(onConnected);
         window.NATSSubscriber2.startWebSocket(onConnected);
+        setInterval(refreshPending, 200);
       } catch (err) {
         console.error(err);
       }
